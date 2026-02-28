@@ -3,202 +3,443 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from io import StringIO
 import sys
+import json
+import os
+from datetime import datetime
+import re
 
 # URL of the Wikipedia page
-url = "https://en.wikipedia.org/wiki/2025%E2%80%9326_UEFA_Champions_League"
+base_url = "https://en.wikipedia.org/wiki/2025%E2%80%9326_UEFA_Champions_League"
 
-def scrape_champions_league_data(url):
-    """
-    Scrapes the 2025-26 UEFA Champions League Wikipedia page and extracts structured data.
-    """
+def fetch_page():
+    """Fetches the Wikipedia page."""
     try:
-        # Send a GET request to the URL
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Raise an exception for bad status codes
-
-        # Parse the HTML content
+        response = requests.get(base_url, headers=headers)
+        response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
-        data = {}
+        return soup
+    except Exception as e:
+        print(f"❌ Error fetching page: {e}")
+        return None
 
-        # --- 1. Extract Tournament Details from Infobox ---
-        infobox = soup.find('table', class_='infobox')
-        if infobox:
-            tournament_details = {}
-            rows = infobox.find_all('tr')
-            for row in rows:
-                header = row.find('th')
-                data_cell = row.find('td')
-                if header and data_cell:
-                    key = header.get_text(strip=True).replace('\n', ' ')
-                    value = data_cell.get_text(strip=True).replace('\n', ' ')
-                    tournament_details[key] = value
-            data['Tournament Details'] = tournament_details
+def extract_league_table(soup):
+    """Specifically extracts the league phase table."""
+    print("  📊 Extracting League Table...")
+    
+    # Find the League Phase section
+    league_phase_header = soup.find('span', {'id': 'League_phase'})
+    if not league_phase_header:
+        league_phase_header = soup.find('span', {'id': 'Table'})
+    
+    if not league_phase_header:
+        return "[League Table section not found on page]"
+    
+    # Look for the table after this header
+    current = league_phase_header.find_parent('h2').find_next_sibling()
+    table_content = []
+    
+    # Try to find the standings table
+    found_table = False
+    while current and not found_table:
+        if current.name == 'table':
+            # Check if this is the league table (has Pos, Team, Pld headers)
+            table_text = current.get_text()
+            if 'Pos' in table_text and 'Team' in table_text and 'Pld' in table_text:
+                try:
+                    # Parse the table
+                    table_html = str(current)
+                    df = pd.read_html(StringIO(table_html))[0]
+                    
+                    # Clean up the dataframe
+                    df = df.dropna(how='all')
+                    
+                    table_content.append("\n🏆 LEAGUE PHASE STANDINGS")
+                    table_content.append("-" * 80)
+                    
+                    # Format each row nicely
+                    for _, row in df.iterrows():
+                        pos = row.get('Pos', row.get('Position', ''))
+                        team = row.get('Team', row.get('Club', ''))
+                        pld = row.get('Pld', row.get('MP', ''))
+                        w = row.get('W', '')
+                        d = row.get('D', '')
+                        l = row.get('L', '')
+                        gf = row.get('GF', '')
+                        ga = row.get('GA', '')
+                        gd = row.get('GD', '')
+                        pts = row.get('Pts', '')
+                        
+                        # Clean team name (remove flags and extra formatting)
+                        if isinstance(team, str):
+                            team = re.sub(r'\[.*?\]', '', team)
+                            team = team.strip()
+                        
+                        line = f"  {pos}. {team:<30} | Pld:{pld} W:{w} D:{d} L:{l} GF:{gf} GA:{ga} GD:{gd} Pts:{pts}"
+                        table_content.append(line)
+                    
+                    found_table = True
+                except Exception as e:
+                    table_content.append(f"  [Error parsing table: {e}]")
+        
+        current = current.find_next_sibling()
+    
+    if not found_table:
+        return "[League table data not found in expected format]"
+    
+    return "\n".join(table_content)
 
-        # --- 2. Extract Key Statistics ---
-        # Look for statistics in the infobox or summary paragraphs
-        stats = {}
-        # Find the "Tournament statistics" section in infobox
-        if infobox:
-            stats_header = infobox.find('th', string='Tournament statistics')
-            if stats_header:
-                parent_row = stats_header.find_parent('tr')
-                next_row = parent_row.find_next_sibling('tr')
-                if next_row and next_row.find('td'):
-                    stats_text = next_row.get_text(separator='|', strip=True)
-                    for item in stats_text.split('|'):
-                        if ':' in item:
-                            key, value = item.split(':', 1)
-                            stats[key.strip()] = value.strip()
-                        elif '–' in item:
-                            # Handle cases like "Matches played 160"
-                            parts = item.split()
-                            if len(parts) >= 2:
-                                key = parts[0]
-                                value = ' '.join(parts[1:])
-                                stats[key] = value
-        data['Tournament Statistics'] = stats
-
-        # --- 3. Extract Association Team Allocation Table ---
-        # Find the first table with ranking data (usually has "Rank" header)
-        tables = soup.find_all('table', class_='wikitable')
-        allocation_tables = []
-        for table in tables:
-            header_row = table.find('tr')
-            if header_row and 'Rank' in header_row.get_text():
-                # Convert table to string and wrap in StringIO to avoid FutureWarning
-                table_html = str(table)
+def extract_results(soup):
+    """Extracts all match results from the Results section."""
+    print("  ⚽ Extracting Results...")
+    
+    results_header = soup.find('span', {'id': 'Results'})
+    if not results_header:
+        return "[Results section not found on page]"
+    
+    current = results_header.find_parent('h2').find_next_sibling()
+    results_content = []
+    matchday = 0
+    
+    while current and current.name != 'h2':
+        if current.name == 'h3':
+            # New matchday
+            matchday_text = current.get_text()
+            if 'Matchday' in matchday_text:
+                matchday += 1
+                results_content.append(f"\n📅 MATCHDAY {matchday}")
+                results_content.append("-" * 60)
+        
+        elif current.name == 'table':
+            # Match results table
+            try:
+                table_html = str(current)
                 df = pd.read_html(StringIO(table_html))[0]
-                # Basic cleaning
-                df = df.dropna(how='all')
-                allocation_tables.append(df)
-        
-        if allocation_tables:
-            data['Association Allocation'] = allocation_tables
-        else:
-            data['Association Allocation'] = "No allocation table found."
-
-        # --- 4. Extract Distribution and Teams Lists ---
-        # Find sections by headings
-        distribution_section = soup.find('span', {'id': 'Distribution'})
-        if distribution_section:
-            # Get the next table after this heading
-            next_table = distribution_section.find_next('table', class_='wikitable')
-            if next_table:
-                table_html = str(next_table)
-                distribution_df = pd.read_html(StringIO(table_html))[0]
-                data['Distribution'] = distribution_df
-
-        teams_section = soup.find('span', {'id': 'Teams'})
-        if teams_section:
-            # Get the next table after this heading
-            next_table = teams_section.find_next('table', class_='wikitable')
-            if next_table:
-                table_html = str(next_table)
-                teams_df = pd.read_html(StringIO(table_html))[0]
-                data['Teams'] = teams_df
-
-        # --- 5. Extract Schedule ---
-        schedule_section = soup.find('span', {'id': 'Schedule'})
-        if schedule_section:
-            # Find the next wikitable after the schedule heading
-            next_table = schedule_section.find_next('table', class_='wikitable')
-            if next_table:
-                table_html = str(next_table)
-                schedule_df = pd.read_html(StringIO(table_html))[0]
-                data['Schedule'] = schedule_df
-
-        return data
-
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching the URL: {e}")
-        return None
-    except Exception as e:
-        print(f"An error occurred during parsing: {e}")
-        return None
-
-def save_to_excel(data, filename="champions_league_2025_26.xlsx"):
-    """
-    Saves the scraped data to an Excel file with multiple sheets.
-    """
-    try:
-        with pd.ExcelWriter(filename, engine='openpyxl') as writer:
-            for sheet_name, content in data.items():
-                # Clean sheet name (max 31 chars for Excel)
-                clean_sheet_name = sheet_name[:31]
                 
-                if isinstance(content, list):
-                    # If there are multiple tables (like association allocation split)
-                    for i, df in enumerate(content):
-                        if isinstance(df, pd.DataFrame):
-                            sheet = f"{clean_sheet_name}_{i+1}"[:31]
-                            df.to_excel(writer, sheet_name=sheet, index=False)
-                elif isinstance(content, pd.DataFrame):
-                    content.to_excel(writer, sheet_name=clean_sheet_name, index=False)
-                elif isinstance(content, dict):
-                    # Convert dictionary to DataFrame for easy saving
-                    df = pd.DataFrame(list(content.items()), columns=['Category', 'Value'])
-                    df.to_excel(writer, sheet_name=clean_sheet_name, index=False)
-                else:
-                    # If it's just text, create a simple DataFrame
-                    df = pd.DataFrame({'Data': [content]})
-                    df.to_excel(writer, sheet_name=clean_sheet_name, index=False)
+                for _, row in df.iterrows():
+                    if len(row) >= 3:
+                        home = str(row.iloc[0]) if pd.notna(row.iloc[0]) else ''
+                        score = str(row.iloc[1]) if pd.notna(row.iloc[1]) else ''
+                        away = str(row.iloc[2]) if pd.notna(row.iloc[2]) else ''
+                        
+                        # Clean up team names
+                        home = re.sub(r'\[.*?\]', '', home).strip()
+                        away = re.sub(r'\[.*?\]', '', away).strip()
+                        
+                        if home and score and away and 'Score' not in home:
+                            results_content.append(f"  {home:<25} {score:^10} {away:<25}")
+            except Exception as e:
+                pass
         
-        print(f"✅ Data successfully saved to {filename}")
-        return True
-    except Exception as e:
-        print(f"❌ Error saving to Excel: {e}")
-        return False
+        current = current.find_next_sibling()
+    
+    if not results_content:
+        return "[No match results found yet]"
+    
+    return "\n".join(results_content)
 
-def print_data(data):
-    """
-    Prints the scraped data in a readable format.
-    """
-    for key, value in data.items():
-        print(f"\n{'='*60}")
-        print(f"📊 {key.upper()}")
-        print(f"{'='*60}")
+def extract_knockout_phase(soup):
+    """Extracts knockout phase information including bracket and results."""
+    print("  🏆 Extracting Knockout Phase...")
+    
+    knockout_header = soup.find('span', {'id': 'Knockout_phase'})
+    if not knockout_header:
+        return "[Knockout phase section not found]"
+    
+    current = knockout_header.find_parent('h2').find_next_sibling()
+    knockout_content = []
+    
+    # Extract bracket if present
+    bracket_found = False
+    while current and current.name != 'h2':
+        if current.name == 'div' and 'bracket' in str(current.get('class', '')):
+            bracket_found = True
+            knockout_content.append("\n🎯 KNOCKOUT BRACKET")
+            knockout_content.append("-" * 60)
+            
+            # Try to extract bracket text
+            bracket_text = current.get_text(separator='\n')
+            lines = bracket_text.split('\n')
+            for line in lines:
+                if line.strip() and not line.startswith('v'):
+                    knockout_content.append(f"  {line.strip()}")
         
-        if isinstance(value, pd.DataFrame):
-            print(value.to_string(index=False))
-        elif isinstance(value, list):
-            for i, item in enumerate(value):
-                print(f"\n--- Part {i+1} ---")
-                if isinstance(item, pd.DataFrame):
-                    print(item.to_string(index=False))
-                else:
-                    print(item)
-        elif isinstance(value, dict):
-            for k, v in value.items():
-                print(f"  {k}: {v}")
-        else:
-            print(value)
+        elif current.name == 'h3':
+            round_name = current.get_text()
+            knockout_content.append(f"\n{round_name.upper()}")
+            knockout_content.append("-" * 40)
+        
+        elif current.name == 'table':
+            try:
+                table_html = str(current)
+                df = pd.read_html(StringIO(table_html))[0]
+                
+                for _, row in df.iterrows():
+                    if len(row) >= 4:
+                        team1 = str(row.iloc[0]) if pd.notna(row.iloc[0]) else ''
+                        agg = str(row.iloc[1]) if pd.notna(row.iloc[1]) else ''
+                        team2 = str(row.iloc[2]) if pd.notna(row.iloc[2]) else ''
+                        
+                        if 'Team 1' not in team1 and team1 and agg and team2:
+                            knockout_content.append(f"  {team1:<25} {agg:^15} {team2:<25}")
+            except:
+                pass
+        
+        current = current.find_next_sibling()
+    
+    if not knockout_content:
+        knockout_content.append("[Knockout phase details will be added as the tournament progresses]")
+    
+    return "\n".join(knockout_content)
+
+def extract_top_scorers(soup):
+    """Extracts top scorers information."""
+    print("  ⚡ Extracting Top Scorers...")
+    
+    stats_section = soup.find('span', {'id': 'Top_goalscorers'})
+    if not stats_section:
+        return "[Top scorers section not found]"
+    
+    current = stats_section.find_parent('h2').find_next_sibling()
+    scorers_content = []
+    
+    while current and current.name != 'h2':
+        if current.name == 'table':
+            try:
+                table_html = str(current)
+                df = pd.read_html(StringIO(table_html))[0]
+                
+                scorers_content.append("\n⚽ TOP SCORERS")
+                scorers_content.append("-" * 60)
+                
+                for _, row in df.iterrows():
+                    rank = row.iloc[0] if len(row) > 0 else ''
+                    player = row.iloc[1] if len(row) > 1 else ''
+                    team = row.iloc[2] if len(row) > 2 else ''
+                    goals = row.iloc[3] if len(row) > 3 else ''
+                    minutes = row.iloc[4] if len(row) > 4 else ''
+                    
+                    if rank and player and 'Rank' not in str(rank):
+                        scorers_content.append(f"  {rank}. {player:<25} {team:<25} - {goals} goals ({minutes} min)")
+            except:
+                pass
+        
+        current = current.find_next_sibling()
+    
+    if not scorers_content:
+        return "[Top scorers data not available yet]"
+    
+    return "\n".join(scorers_content)
+
+def extract_qualifying_rounds(soup):
+    """Extracts qualifying rounds results."""
+    print("  🔄 Extracting Qualifying Rounds...")
+    
+    qualifying_header = soup.find('span', {'id': 'Qualifying_rounds'})
+    if not qualifying_header:
+        return "[Qualifying rounds section not found]"
+    
+    current = qualifying_header.find_parent('h2').find_next_sibling()
+    qualifying_content = []
+    current_round = ""
+    
+    while current and current.name != 'h2':
+        if current.name == 'h3':
+            current_round = current.get_text()
+            qualifying_content.append(f"\n{current_round.upper()}")
+            qualifying_content.append("-" * 60)
+        
+        elif current.name == 'table':
+            try:
+                table_html = str(current)
+                df = pd.read_html(StringIO(table_html))[0]
+                
+                for _, row in df.iterrows():
+                    if len(row) >= 4:
+                        team1 = str(row.iloc[0]) if pd.notna(row.iloc[0]) else ''
+                        agg = str(row.iloc[1]) if pd.notna(row.iloc[1]) else ''
+                        team2 = str(row.iloc[2]) if pd.notna(row.iloc[2]) else ''
+                        first = str(row.iloc[3]) if len(row) > 3 and pd.notna(row.iloc[3]) else ''
+                        second = str(row.iloc[4]) if len(row) > 4 and pd.notna(row.iloc[4]) else ''
+                        
+                        if 'Team 1' not in team1 and team1 and agg and team2:
+                            qualifying_content.append(f"  {team1:<25} {agg:^15} {team2:<25}")
+                            if first and second:
+                                qualifying_content.append(f"    {first:>25} | {second:<25}")
+            except:
+                pass
+        
+        current = current.find_next_sibling()
+    
+    return "\n".join(qualifying_content)
+
+def extract_general_info(soup):
+    """Extracts general tournament information."""
+    print("  📋 Extracting General Information...")
+    
+    content = []
+    
+    # Get intro paragraphs
+    intro = soup.find('div', {'class': 'mw-parser-output'})
+    if intro:
+        for p in intro.find_all('p', recursive=False)[:5]:
+            text = p.get_text(strip=True)
+            if text and not text.startswith('['):
+                content.append(text)
+    
+    # Get infobox data
+    infobox = soup.find('table', class_='infobox')
+    if infobox:
+        content.append("\n📊 TOURNAMENT OVERVIEW")
+        content.append("-" * 40)
+        rows = infobox.find_all('tr')
+        for row in rows:
+            header = row.find('th')
+            data = row.find('td')
+            if header and data:
+                key = header.get_text(strip=True)
+                value = data.get_text(strip=True)
+                content.append(f"  • {key}: {value}")
+    
+    return "\n".join(content)
+
+def scrape_complete_data():
+    """Main function to scrape all data."""
+    print("🔍 SCRAPING UEFA CHAMPIONS LEAGUE 2025-26")
+    print("=" * 60)
+    
+    soup = fetch_page()
+    if not soup:
+        return None
+    
+    data = {
+        'metadata': {
+            'scrape_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'source_url': base_url
+        },
+        'sections': {}
+    }
+    
+    # Extract each section
+    data['sections']['00_General_Information'] = extract_general_info(soup)
+    data['sections']['01_Qualifying_Rounds'] = extract_qualifying_rounds(soup)
+    data['sections']['02_League_Table'] = extract_league_table(soup)
+    data['sections']['03_Results'] = extract_results(soup)
+    data['sections']['04_Knockout_Phase'] = extract_knockout_phase(soup)
+    data['sections']['05_Top_Scorers'] = extract_top_scorers(soup)
+    
+    return data
+
+def save_for_rag(data):
+    """Saves data in RAG-optimized format."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_dir = f"champions_league_data_{timestamp}"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    print(f"\n💾 Saving files to: {output_dir}/")
+    
+    # 1. Combined file with all sections
+    combined_file = os.path.join(output_dir, "00_COMPLETE.txt")
+    with open(combined_file, 'w', encoding='utf-8') as f:
+        f.write("=" * 80 + "\n")
+        f.write("UEFA CHAMPIONS LEAGUE 2025-26 - COMPLETE DATA\n")
+        f.write("=" * 80 + "\n")
+        f.write(f"Generated: {data['metadata']['scrape_date']}\n")
+        f.write(f"Source: {data['metadata']['source_url']}\n")
+        f.write("=" * 80 + "\n\n")
+        
+        for section_name, section_content in data['sections'].items():
+            f.write(section_content)
+            f.write("\n\n" + "=" * 80 + "\n\n")
+    
+    print(f"  ✅ Combined file: {combined_file}")
+    
+    # 2. Individual section files
+    sections_dir = os.path.join(output_dir, "sections")
+    os.makedirs(sections_dir, exist_ok=True)
+    
+    for section_name, section_content in data['sections'].items():
+        # Clean filename
+        clean_name = section_name.replace(' ', '_').lower()
+        section_file = os.path.join(sections_dir, f"{clean_name}.txt")
+        
+        with open(section_file, 'w', encoding='utf-8') as f:
+            f.write(section_content)
+        
+        print(f"  ✅ Section: {clean_name}.txt")
+    
+    # 3. JSON version for structured access
+    json_file = os.path.join(output_dir, "data.json")
+    with open(json_file, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    print(f"  ✅ JSON data: {json_file}")
+    
+    # 4. Create README
+    readme_file = os.path.join(output_dir, "README.txt")
+    with open(readme_file, 'w', encoding='utf-8') as f:
+        f.write("UEFA CHAMPIONS LEAGUE 2025-26 - SCRAPED DATA\n")
+        f.write("=" * 50 + "\n\n")
+        f.write(f"Data scraped: {data['metadata']['scrape_date']}\n\n")
+        f.write("SECTIONS:\n")
+        for section_name in data['sections'].keys():
+            f.write(f"  • {section_name}\n")
+        f.write("\nFILES:\n")
+        f.write("  • 00_COMPLETE.txt - All sections combined (best for RAG)\n")
+        f.write("  • sections/ - Individual section files\n")
+        f.write("  • data.json - Structured JSON data\n")
+    
+    print(f"  ✅ README: {readme_file}")
+    
+    return output_dir
+
+def print_preview(data):
+    """Prints a preview of the scraped data."""
+    print("\n" + "=" * 60)
+    print("📊 DATA PREVIEW")
+    print("=" * 60)
+    
+    for section_name, content in data['sections'].items():
+        preview = content[:200].replace('\n', ' ') + "..." if len(content) > 200 else content
+        print(f"\n{section_name}:")
+        print(f"  {preview}")
 
 if __name__ == "__main__":
-    print("🔍 Scraping data from:", url)
-    print("-" * 60)
+    # Check for required packages
+    required = ['requests', 'bs4', 'pandas', 'lxml']
+    missing = []
+    for package in required:
+        try:
+            if package == 'bs4':
+                import bs4
+            else:
+                __import__(package)
+        except ImportError:
+            missing.append(package)
     
-    # Check if required packages are installed
-    try:
-        import lxml
-        print("✅ lxml is installed")
-    except ImportError:
-        print("❌ lxml is NOT installed. Please install it with: pip install lxml")
+    if missing:
+        print("❌ Missing packages. Install with:")
+        print(f"pip install {' '.join(missing)}")
         sys.exit(1)
     
-    scraped_data = scrape_champions_league_data(url)
-
-    if scraped_data:
-        # Print data to console
-        print_data(scraped_data)
+    # Scrape the data
+    data = scrape_complete_data()
+    
+    if data:
+        # Show preview
+        print_preview(data)
         
-        # Save data to Excel file
-        success = save_to_excel(scraped_data)
-        if success:
-            print("\n✅ Script completed successfully!")
-        else:
-            print("\n❌ Script completed with errors while saving.")
+        # Save files
+        output_dir = save_for_rag(data)
+        
+        print("\n" + "=" * 60)
+        print("✅ SCRAPING COMPLETED SUCCESSFULLY!")
+        print("=" * 60)
+        print(f"\n📁 All files saved to: {output_dir}/")
+        print("\n📝 FOR RAG:")
+        print("  • Use '00_COMPLETE.txt' for complete context")
+        print("  • Individual section files in 'sections/' folder")
     else:
         print("❌ Failed to scrape data.")

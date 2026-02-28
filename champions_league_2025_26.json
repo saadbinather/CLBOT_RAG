@@ -1,0 +1,518 @@
+{
+  "Tournament Details": {
+    "Dates": "Qualifying:8 July – 27 August 2025Competition proper:16 September 2025 – 30 May 2026",
+    "Teams": "Competition proper:36Total:82 (from 53 associations)",
+    "Matches played": "160",
+    "Goals scored": "551 (3.44 per match)",
+    "Attendance": "6,782,938 (42,393 per match)",
+    "Top scorer(s)": "Kylian Mbappé(Real Madrid)13 goals"
+  },
+  "Tournament Statistics": {},
+  "Association Allocation": [
+    [
+      {
+        "Rank": 1,
+        "Association": "England",
+        "Coeff.": 104.303,
+        "Teams": 4,
+        "Notes": "+1 (EPS) +1 (EL)"
+      },
+      {
+        "Rank": 2,
+        "Association": "Italy",
+        "Coeff.": 90.284,
+        "Teams": 4,
+        "Notes": NaN
+      },
+      {
+        "Rank": 3,
+        "Association": "Spain",
+        "Coeff.": 89.489,
+        "Teams": 4,
+        "Notes": "+1 (EPS)"
+      },
+      {
+        "Rank": 4,
+        "Association": "Germany",
+        "Coeff.": 86.624,
+        "Teams": 4,
+        "Notes": NaN
+      },
+      {
+        "Rank": 5,
+        "Association": "France",
+        "Coeff.": 66.831,
+        "Teams": 4,
+        "Notes": NaN
+      },
+      {
+        "Rank": 6,
+        "Association": "Netherlands",
+        "Coeff.": 61.3,
+        "Teams": 3,
+        "Notes": NaN
+      },
+      {
+        "Rank": 7,
+        "Association": "Portugal",
+        "Coeff.": 56.316,
+        "Teams": 2,
+        "Notes": NaN
+      },
+      {
+        "Rank": 8,
+        "Association": "Belgium",
+        "Coeff.": 48.8,
+        "Teams": 2,
+        "Notes": NaN
+      },
+      {
+        "Rank": 9,
+        "Association": "Turkey",
+        "Coeff.": 38.6,
+        "Teams": 2,
+        "Notes": NaN
+      },
+      {
+        "Rank": 10,
+        "Association": "Czech Republic",
+        "Coeff.": 36.05,
+        "Teams": 2,
+        "Notes": NaN
+      },
+      {
+        "Rank": 11,
+        "Association": "Scotland",
+        "Coeff.": 36.05,
+        "Teams": 2,
+        "Notes": NaN
+      },
+      {
+        "Rank": 12,
+        "Association": "Switzerland",
+        "Coeff.": 32.975,
+        "Teams": 2,
+        "Notes": NaN
+      },
+      {
+        "Rank": 13,
+        "Association": "Austria",
+        "Coeff.": 32.6,
+        "Teams": 2,
+        "Notes": NaN
+      },
+      {
+        "Rank": 14,
+        "Association": "Norway",
+        "Coeff.": 31.625,
+        "Teams": 2,
+        "Notes": NaN
+      },
+      {
+        "Rank": 15,
+        "Association": "Greece",
+        "Coeff.": 31.525,
+        "Teams": 2,
+        "Notes": NaN
+      },
+      {
+        "Rank": 16,
+        "Association": "Denmark",
+        "Coeff.": 31.45,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 17,
+        "Association": "Israel",
+        "Coeff.": 31.125,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 18,
+        "Association": "Ukraine",
+        "Coeff.": 28.0,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 19,
+        "Association": "Serbia",
+        "Coeff.": 27.775,
+        "Teams": 1,
+        "Notes": NaN
+      }
+    ],
+    [
+      {
+        "Rank": 20,
+        "Association": "Croatia",
+        "Coeff.": 25.525,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 21,
+        "Association": "Poland",
+        "Coeff.": 25.375,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 22,
+        "Association": "Russia",
+        "Coeff.": 22.965,
+        "Teams": 0,
+        "Notes": "[Note RUS]"
+      },
+      {
+        "Rank": 23,
+        "Association": "Cyprus",
+        "Coeff.": 22.1,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 24,
+        "Association": "Hungary",
+        "Coeff.": 21.875,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 25,
+        "Association": "Sweden",
+        "Coeff.": 21.5,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 26,
+        "Association": "Romania",
+        "Coeff.": 21.375,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 27,
+        "Association": "Bulgaria",
+        "Coeff.": 20.375,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 28,
+        "Association": "Azerbaijan",
+        "Coeff.": 20.125,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 29,
+        "Association": "Slovakia",
+        "Coeff.": 19.625,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 30,
+        "Association": "Slovenia",
+        "Coeff.": 13.25,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 31,
+        "Association": "Moldova",
+        "Coeff.": 13.125,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 32,
+        "Association": "Kosovo",
+        "Coeff.": 11.541,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 33,
+        "Association": "Kazakhstan",
+        "Coeff.": 11.5,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 34,
+        "Association": "Finland",
+        "Coeff.": 11.125,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 35,
+        "Association": "Republic of Ireland",
+        "Coeff.": 10.875,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 36,
+        "Association": "Armenia",
+        "Coeff.": 10.625,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 37,
+        "Association": "Latvia",
+        "Coeff.": 10.625,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 38,
+        "Association": "Faroe Islands",
+        "Coeff.": 10.375,
+        "Teams": 1,
+        "Notes": NaN
+      }
+    ],
+    [
+      {
+        "Rank": 39,
+        "Association": "Bosnia and Herzegovina",
+        "Coeff.": 10.0,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 40,
+        "Association": "Liechtenstein",
+        "Coeff.": 10.0,
+        "Teams": 0,
+        "Notes": "[Note LIE]"
+      },
+      {
+        "Rank": 41,
+        "Association": "Iceland",
+        "Coeff.": 9.583,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 42,
+        "Association": "Northern Ireland",
+        "Coeff.": 9.208,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 43,
+        "Association": "Luxembourg",
+        "Coeff.": 8.625,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 44,
+        "Association": "Lithuania",
+        "Coeff.": 8.5,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 45,
+        "Association": "Malta",
+        "Coeff.": 8.25,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 46,
+        "Association": "Georgia",
+        "Coeff.": 7.625,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 47,
+        "Association": "Albania",
+        "Coeff.": 7.375,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 48,
+        "Association": "Estonia",
+        "Coeff.": 7.207,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 49,
+        "Association": "Belarus",
+        "Coeff.": 6.625,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 50,
+        "Association": "North Macedonia",
+        "Coeff.": 6.0,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 51,
+        "Association": "Andorra",
+        "Coeff.": 5.998,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 52,
+        "Association": "Wales",
+        "Coeff.": 5.791,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 53,
+        "Association": "Montenegro",
+        "Coeff.": 5.708,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 54,
+        "Association": "Gibraltar",
+        "Coeff.": 4.957,
+        "Teams": 1,
+        "Notes": NaN
+      },
+      {
+        "Rank": 55,
+        "Association": "San Marino",
+        "Coeff.": 1.832,
+        "Teams": 1,
+        "Notes": NaN
+      }
+    ],
+    [
+      {
+        "Rank[25]": 1,
+        "Player": "Kylian Mbappé",
+        "Team": "Real Madrid",
+        "Goals": 13,
+        "Minutes played": 711
+      },
+      {
+        "Rank[25]": 2,
+        "Player": "Anthony Gordon",
+        "Team": "Newcastle United",
+        "Goals": 10,
+        "Minutes played": 667
+      },
+      {
+        "Rank[25]": 3,
+        "Player": "Harry Kane",
+        "Team": "Bayern Munich",
+        "Goals": 8,
+        "Minutes played": 607
+      },
+      {
+        "Rank[25]": 4,
+        "Player": "Erling Haaland",
+        "Team": "Manchester City",
+        "Goals": 7,
+        "Minutes played": 617
+      },
+      {
+        "Rank[25]": 4,
+        "Player": "Victor Osimhen",
+        "Team": "Galatasaray",
+        "Goals": 7,
+        "Minutes played": 706
+      },
+      {
+        "Rank[25]": 6,
+        "Player": "Gabriel Martinelli",
+        "Team": "Arsenal",
+        "Goals": 6,
+        "Minutes played": 383
+      },
+      {
+        "Rank[25]": 6,
+        "Player": "Jens Petter Hauge",
+        "Team": "Bodø/Glimt",
+        "Goals": 6,
+        "Minutes played": 819
+      },
+      {
+        "Rank[25]": 8,
+        "Player": "Marcus Rashford",
+        "Team": "Barcelona",
+        "Goals": 5,
+        "Minutes played": 464
+      },
+      {
+        "Rank[25]": 8,
+        "Player": "Gorka Guruzeta",
+        "Team": "Athletic Bilbao",
+        "Goals": 5,
+        "Minutes played": 469
+      },
+      {
+        "Rank[25]": 8,
+        "Player": "Alexander Sørloth",
+        "Team": "Atlético Madrid",
+        "Goals": 5,
+        "Minutes played": 493
+      },
+      {
+        "Rank[25]": 8,
+        "Player": "Fermín López",
+        "Team": "Barcelona",
+        "Goals": 5,
+        "Minutes played": 533
+      },
+      {
+        "Rank[25]": 8,
+        "Player": "Harvey Barnes",
+        "Team": "Newcastle United",
+        "Goals": 5,
+        "Minutes played": 630
+      },
+      {
+        "Rank[25]": 8,
+        "Player": "Camilo Durán",
+        "Team": "Qarabağ",
+        "Goals": 5,
+        "Minutes played": 754
+      },
+      {
+        "Rank[25]": 8,
+        "Player": "Julián Alvarez",
+        "Team": "Atlético Madrid",
+        "Goals": 5,
+        "Minutes played": 760
+      },
+      {
+        "Rank[25]": 8,
+        "Player": "Folarin Balogun",
+        "Team": "Monaco",
+        "Goals": 5,
+        "Minutes played": 813
+      },
+      {
+        "Rank[25]": 8,
+        "Player": "Vitinha",
+        "Team": "Paris Saint-Germain",
+        "Goals": 5,
+        "Minutes played": 899
+      }
+    ]
+  ]
+}
